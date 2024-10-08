@@ -41,7 +41,7 @@ class TarjetaController extends Controller
 
     public function tarjetasVista(Request $request){
         // Obtener todas las tarjetas ordenadas por nombre descendente con paginación
-        $tarjetas = Tarjetas::orderBy('nombre', 'desc')->paginate(8);
+        $tarjetas = Tarjetas::orderBy('nombre', 'desc')->paginate(5);
         
         // Devolver la vista con las tarjetas paginadas
         return view('tarjetas.lista', compact('tarjetas'));
