@@ -9,18 +9,20 @@ use Illuminate\Http\Request;
 class LibroController extends Controller
 {
     // Mostrar lista de libros
-    public function librosLista()
-{
-    // Obtener los libros con paginación
-    $libros = Libro::orderBy('titulo', 'asc')->paginate(5);
+    public function librosLista(){
+        // Obtener los libros con paginación
+        $libros = Libro::orderBy('titulo', 'asc')->paginate(5);
 
-    // Obtener todos los autores
-    $autores = Autor::all();
+        // Obtener todos los autores
+        $autores = Autor::all();
 
-    // Pasar ambos datos a la vista
-    return view('libros.lista', compact('libros', 'autores')); // Vista lista
-}
-
+        // Pasar ambos datos a la vista
+        return view('libros.lista', compact('libros', 'autores')); // Vista lista
+    }
+    public function librosDisponibles(){
+        $libros = Libro::where('estado', 'disponible')->orderBy('titulo', 'asc')->get();
+        return $libros;
+    }
 
     // Mostrar detalle de un libro específico
     public function libroVista($id)

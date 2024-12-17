@@ -9,7 +9,27 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" rel="stylesheet"/>
 </head>
 <body>
-
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">Sistema de Préstamos</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ route('clientes.lista') }}"><i class="fa fa-users"></i> Clientes</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ route('libros.lista') }}"><i class="fa fa-book"></i> Libros</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ route('autores.lista') }}"><i class="fa fa-pencil-alt"></i> Autores</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
 <div class="container mt-5">
     @if(session('success'))
         <div class="alert alert-success">
@@ -32,6 +52,7 @@
                 <th>Apellido</th>
                 <th>Documento</th>
                 <th>Teléfono</th>
+                <th>Dirección</th>
                 <th>Acciones</th>
             </tr>
         </thead>
@@ -43,6 +64,7 @@
                     <td>{{ $cliente->apellido }}</td>
                     <td>{{ $cliente->documento }}</td>
                     <td>{{ $cliente->telefono }}</td>
+                    <td>{{ $cliente->direccion }}</td>
                     <td>
                         <!-- Botón para ver el detalle -->
                         <a href="{{ route('cliente.vista', $cliente->id) }}" class="btn btn-info">
@@ -81,6 +103,10 @@
                                         <div class="form-group">
                                             <label for="telefono">Teléfono:</label>
                                             <input type="text" class="form-control" name="telefono" value="{{ $cliente->telefono }}" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="direccion">Dirección:</label>
+                                            <input type="text" class="form-control" name="direccion" value="{{ $cliente->direccion }}" required>
                                         </div>
                                         <button type="submit" class="btn btn-primary">Actualizar Cliente</button>
                                     </form>
@@ -134,6 +160,10 @@
                 <div class="form-group">
                     <label for="telefono">Teléfono:</label>
                     <input type="text" class="form-control" name="telefono" required>
+                </div>
+                <div class="form-group">
+                    <label for="direccion">Dirección:</label>
+                    <input type="text" class="form-control" name="direccion" required>
                 </div>
                 <button type="submit" class="btn btn-primary">Crear Cliente</button>
             </form>

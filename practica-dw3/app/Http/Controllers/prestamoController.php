@@ -9,34 +9,18 @@ use Illuminate\Http\Request;
 
 class PrestamoController extends Controller
 {
-    // Mostrar el detalle de un préstamo
-    public function prestamoVista($id)
+    // Mostrar lista de préstamos
+    public function prestamosLista()
     {
-        // Obtener datos del préstamo, libro y cliente
-        $prestamo = Prestamo::findOrFail($id);
-        $libro = Libro::findOrFail($prestamo->id_libro);
-        $cliente = Cliente::findOrFail($prestamo->id_cliente);
-
-        // Pasar datos a la vista 'prestamos.detalle' (mejor opción)
-        return view('prestamos.detalle', compact('prestamo', 'libro', 'cliente'));
+        $prestamos = Prestamo::with('libro', 'cliente')->paginate(10);
+        return view('prestamos.lista', compact('prestamos'));
     }
 
-    // Lista de préstamos (filtrados opcionalmente por cliente)
-    public function prestamosLista($cliente_id = null)
+    // Mostrar detalles de un préstamo específico
+    public function prestamoVista($id)
     {
-        // Filtrar préstamos por cliente si se pasa el ID
-        $prestamos = Prestamo::when($cliente_id, function ($query, $cliente_id) {
-            return $query->where('id_cliente', $cliente_id);
-        })
-            ->orderBy('estado', 'asc') // Ordenar por estado
-            ->paginate(5); // Paginación de resultados
-
-        // Obtener lista de libros y clientes
-        $libros = Libro::orderBy('titulo', 'asc')->get();
-        $clientes = Cliente::orderBy('nombre', 'asc')->get();
-
-        // Pasar datos a la vista 'prestamos.lista'
-        return view('prestamos.lista', compact('prestamos', 'libros', 'clientes'));
+        $prestamo = Prestamo::with('libro', 'cliente')->findOrFail($id);
+        return view('prestamos.detalle', compact('prestamo'));
     }
 
     // Crear un nuevo préstamo
@@ -44,60 +28,77 @@ class PrestamoController extends Controller
     {
         // Validación de datos
         $request->validate([
-            'estado'      => 'required|string|max:255',
             'id_libro'    => 'required|exists:libros,id',
             'id_cliente'  => 'required|exists:clientes,id',
         ], [
-            'estado.required'      => 'El campo estado es obligatorio.',
             'id_libro.required'    => 'El campo libro es obligatorio.',
             'id_libro.exists'      => 'El libro seleccionado no existe.',
             'id_cliente.required'  => 'El campo cliente es obligatorio.',
             'id_cliente.exists'    => 'El cliente seleccionado no existe.',
         ]);
 
-        // Crear el préstamo en la base de datos
+        // Verificar si el libro está disponible
+        $libro = Libro::findOrFail($request->id_libro);
+        if ($libro->estado !== 'disponible') {
+            return redirect()->back()->withErrors('El libro no está disponible para préstamo.');
+        }
+
+        // Actualizar estado del libro a "no disponible"
+        $libro->update(['estado' => 'no disponible']);
+
+        // Crear el préstamo
         Prestamo::create([
-            'estado'     => $request->estado,
+            'estado'     => 'pendiente', // Por defecto
             'id_libro'   => $request->id_libro,
             'id_cliente' => $request->id_cliente,
         ]);
 
         // Redirigir con mensaje de éxito
-        return redirect()->route('prestamos.lista')->with('success', 'Préstamo creado correctamente.');
+        return redirect()->route('cliente.vista', $request->id_cliente)
+                         ->with('success', 'Préstamo creado correctamente.');
     }
 
     // Actualizar un préstamo existente
     public function actualizarPrestamo(Request $request, $id)
     {
-        $prestamo = Prestamo::findOrFail($id); // Obtener el préstamo
+        $prestamo = Prestamo::findOrFail($id);
 
-        // Validación de datos
+        // Validar el estado
         $request->validate([
-            'estado'      => 'required|string|max:255',
-            'id_libro'    => 'required|exists:libros,id',
-            'id_cliente'  => 'required|exists:clientes,id',
+            'estado' => 'required|in:devuelto,cancelado',
         ]);
 
-        // Actualizar los datos del préstamo
-        $prestamo->update([
-            'estado'     => $request->estado,
-            'id_libro'   => $request->id_libro,
-            'id_cliente' => $request->id_cliente,
-        ]);
+        if ($prestamo->estado !== 'pendiente') {
+            return redirect()->back()->withErrors('Este préstamo ya no se puede editar.');
+        }
 
-        // Redirigir con mensaje de éxito
-        return redirect()->route('prestamos.lista')->with('success', 'Préstamo actualizado correctamente.');
+        // Actualizar el estado del préstamo
+        $prestamo->update(['estado' => $request->estado]);
+
+        // Actualizar el estado del libro a "disponible" si el préstamo se cierra
+        if (in_array($request->estado, ['devuelto', 'cancelado'])) {
+            $libro = Libro::findOrFail($prestamo->id_libro);
+            $libro->update(['estado' => 'disponible']);
+        }
+
+        return redirect()->back()->with('success', 'Estado del préstamo actualizado correctamente.');
     }
 
     // Eliminar un préstamo
     public function eliminarPrestamo($id)
     {
-        $prestamo = Prestamo::findOrFail($id); // Obtener el préstamo
+        $prestamo = Prestamo::findOrFail($id);
+
+        // Verificar si el préstamo está pendiente
+        if ($prestamo->estado === 'pendiente') {
+            // Actualizar estado del libro a "disponible"
+            $libro = Libro::findOrFail($prestamo->id_libro);
+            $libro->update(['estado' => 'disponible']);
+        }
 
         // Eliminar el préstamo
         $prestamo->delete();
 
-        // Redirigir con mensaje de éxito
-        return redirect()->route('prestamos.lista')->with('success', 'Préstamo eliminado correctamente.');
+        return redirect()->back()->with('success', 'Préstamo eliminado correctamente.');
     }
 }

@@ -63,4 +63,9 @@ Route::post('/prestamos', [PrestamoController::class, 'crearPrestamo'])->name('p
 Route::put('/prestamos/{id}', [PrestamoController::class, 'actualizarPrestamo'])->name('prestamos.actualizar');
 Route::delete('/prestamos/{id}', [PrestamoController::class, 'eliminarPrestamo'])->name('prestamos.eliminar');
 
+// Rutas para las listas
+Route::get('/clientes', [ClienteController::class, 'clientesLista'])->name('clientes.lista');
+Route::get('/libros', [LibroController::class, 'librosLista'])->name('libros.lista');
+Route::get('/autores', [AutorController::class, 'index'])->name('autores.lista');
+
 require __DIR__.'/auth.php';

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Cliente;
+use App\Models\{Cliente, Prestamo, Libro};
 use Illuminate\Http\Request;
 
 class ClienteController extends Controller
@@ -16,10 +16,21 @@ class ClienteController extends Controller
 
     // Mostrar el detalle de un cliente específico
     public function clienteVista($id)
-    {
-        $cliente = Cliente::findOrFail($id); // Buscar cliente o devolver 404
-        return view('clientes.detalle', compact('cliente')); // Pasar datos a la vista detalle
-    }
+{
+    // Obtener los datos del cliente
+    $cliente = Cliente::findOrFail($id);
+
+    // Obtener los préstamos asociados al cliente
+    $prestamos = Prestamo::where('id_cliente', $cliente->id)
+        ->with('libro') // Incluye los datos del libro relacionado
+        ->paginate(5);
+
+    // Obtener todos los libros para el formulario de crear préstamo
+    $libros = Libro::orderBy('titulo', 'asc')->get();
+
+    // Retornar la vista con los datos necesarios
+    return view('clientes.detalle', compact('cliente', 'prestamos', 'libros'));
+}
 
     // Crear un nuevo cliente
     public function crearCliente(Request $request)

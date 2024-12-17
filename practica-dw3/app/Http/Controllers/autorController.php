@@ -47,7 +47,7 @@ class AutorController extends Controller
 
         Autor::create($request->all());
 
-        return redirect()->route('autores.index')->with('success', 'Autor creado correctamente.');
+        return redirect()->back()->with('success', 'Autor creado correctamente.');
     }
 
     // Mostrar el formulario de edición de autor
@@ -69,7 +69,7 @@ class AutorController extends Controller
         $autor = Autor::findOrFail($id);
         $autor->update($request->all());
 
-        return redirect()->route('autores.index')->with('success', 'Autor actualizado correctamente.');
+        return redirect()->back()->with('success', 'Autor actualizado correctamente.');
     }
 
     // Eliminar un autor
@@ -78,7 +78,7 @@ class AutorController extends Controller
         $autor = Autor::findOrFail($id);
         $autor->delete();
 
-        return redirect()->route('autores.index')->with('success', 'Autor eliminado correctamente.');
+        return redirect()->back()->with('success', 'Autor eliminado correctamente.');
     }
 }
 
